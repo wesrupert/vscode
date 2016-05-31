@@ -16,6 +16,7 @@ import { Range } from 'vs/editor/common/core/range';
 
 export const VIEWLET_ID = 'workbench.view.debug';
 export const REPL_ID = 'workbench.panel.repl';
+export const MODULES_ID = 'workbench.panel.modules';
 export const DEBUG_SERVICE_ID = 'debugService';
 export const CONTEXT_IN_DEBUG_MODE = 'inDebugMode';
 export const EDITOR_CONTRIBUTION_ID = 'editor.contrib.debug';

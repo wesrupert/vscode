@@ -812,6 +812,31 @@ export class ToggleReplAction extends AbstractDebugAction {
 	}
 }
 
+export class ToggleModulesAction extends AbstractDebugAction {
+	static ID = 'workbench.debug.action.toggleModules';
+	static LABEL = nls.localize({ comment: ['Debug is a noun in this context, not a verb.'], key: 'debugModulesAction' }, 'Debug Modules');
+
+	constructor(id: string, label: string,
+		@IDebugService debugService: IDebugService,
+		@IPartService private partService: IPartService,
+		@IPanelService private panelService: IPanelService,
+		@IKeybindingService keybindingService: IKeybindingService,
+		@IEventService private eventService: IEventService
+	) {
+		super(id, label, 'debug-action toggle-modules', debugService, keybindingService);
+		this.enabled = this.debugService.state !== debug.State.Disabled;
+		this.registerListeners();
+	}
+
+	public run(): TPromise<any> {
+		return this.panelService.openPanel(debug.MODULES_ID, true);
+	}
+
+	private registerListeners(): void {
+
+	}
+}
+
 export class RunAction extends AbstractDebugAction {
 	static ID = 'workbench.action.debug.run';
 	static LABEL = nls.localize('startWithoutDebugging', "Start Without Debugging");
