@@ -48,7 +48,7 @@ export class Modules extends Panel {
 		const container = dom.append(parent.getHTMLElement(), $('.modules'));
 
 		var str = nls.localize('helloModules', "Hello Modules");
-		var helloElement = document.createTextNode("Hello Modules");
+		var helloElement = document.createTextNode(str);
 		
 		container.appendChild(helloElement);
 
