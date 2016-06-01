@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import 'vs/css!./media/repl';
+import 'vs/css!./media/debugModules';
 import nls = require('vs/nls');
 import { TPromise } from 'vs/base/common/winjs.base';
 import lifecycle = require('vs/base/common/lifecycle');
@@ -16,12 +16,14 @@ import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { IContextViewService, IContextMenuService } from 'vs/platform/contextview/browser/contextView';
 import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
 import { IWorkspaceContextService } from 'vs/workbench/services/workspace/common/contextService';
+import { ScrollableElement } from 'vs/base/browser/ui/scrollbar/scrollableElement';
+import { ScrollbarVisibility } from 'vs/base/browser/ui/scrollbar/scrollableElementOptions';
 
 const $ = dom.emmet;
 
 export class Modules extends Panel {
 	private toDispose: lifecycle.IDisposable[];
-	//private actions: actions.IAction[];
+	private scrollableElement: ScrollableElement;
 
 	constructor(
 		@debug.IDebugService private debugService: debug.IDebugService,
@@ -40,17 +42,50 @@ export class Modules extends Panel {
 
 	private registerListeners(): void {
 		
+	}	
+	
+	public createColumn(container: HTMLElement, columnName: string, columnValue: string) {
+		
+		var colDiv = dom.append(container, $('.modulesColumn'));
+		container.appendChild(colDiv);
+		
+		var columnNameStr = nls.localize('', columnName);
+		var colHeaderText = document.createTextNode(columnNameStr);
+		
+		var colHeader = dom.append(colDiv, $('.modulesHeader'));
+		colHeader.appendChild(colHeaderText);
+		colDiv.appendChild(colHeader);
+		
+		var bodyTextElement = document.createTextNode(columnValue);
+		
+		var bodyElement = dom.append(container, $('.modulesCell'));
+		bodyElement.appendChild(bodyTextElement);
+		colDiv.appendChild(bodyElement);
 	}
 
-
 	public create(parent: builder.Builder): TPromise<void> {
-		super.create(parent);
-		const container = dom.append(parent.getHTMLElement(), $('.modules'));
-
-		var str = nls.localize('helloModules', "Hello Modules");
-		var helloElement = document.createTextNode(str);
+		super.create(parent);		
+		const container = dom.append(parent.getHTMLElement(), $('.debugModules'));
 		
-		container.appendChild(helloElement);
+		const innerContainer = dom.append(container, $('.debugModules'));
+		
+		this.scrollableElement = new ScrollableElement(innerContainer, {
+			canUseTranslate3d: false,
+			horizontal: ScrollbarVisibility.Auto,
+			vertical: ScrollbarVisibility.Auto,
+			useShadows: false,
+			saveLastScrollTimeOnClassName: 'monaco-list-row'
+		});
+		container.appendChild(this.scrollableElement.getDomNode());
+		
+		this.toDispose.concat(this.scrollableElement);
+
+		this.createColumn(container, nls.localize('moduleName', "Name"), 'MyModule.dll');
+		this.createColumn(container, nls.localize('symbolStatus', "Symbol Status"), 'Symbols Not Loaded');
+		this.createColumn(container, nls.localize('symbolPath', "Symbol Path"), '');
+		this.createColumn(container, nls.localize('version', "Version"), '1.0.6');
+		this.createColumn(container, nls.localize('timestamp', "Timestamp"), '1/1/2016 3:30pm');
+		this.createColumn(container, nls.localize('modulePath', "Path"), '/MyModulemyProject/MyModule/MyModule.dll');	
 
 		return TPromise.as(null);
 	}
