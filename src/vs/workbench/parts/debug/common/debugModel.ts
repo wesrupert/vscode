@@ -384,6 +384,18 @@ export class ExceptionBreakpoint implements debug.IExceptionBreakpoint {
 	}
 }
 
+export class Module implements debug.IModule {
+	private id: string;
+
+	constructor(public name: string, public path: string, public symbolStatus?: string, public symbolPath?: string, public version?: string, public timeStamp?: string) {
+		this.id = uuid.generateUuid();
+	}
+
+	public getId(): string {
+		return this.id;
+	}
+}
+
 export class Model implements debug.IModel {
 
 	private threads: { [reference: number]: debug.IThread; };

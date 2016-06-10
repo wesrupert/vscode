@@ -146,6 +146,15 @@ export interface IExceptionBreakpoint extends IEnablement {
 	label: string;
 }
 
+export interface IModule extends ITreeElement {
+	name: string;
+	path: string;
+	symbolStatus?: string;
+	symbolPath?: string;
+	version?: string;
+	timeStamp?: string;
+}
+
 // model interfaces
 
 export interface IViewModel extends ITreeElement {
@@ -255,6 +264,7 @@ export interface IRawDebugSession {
 	scopes(args: DebugProtocol.ScopesArguments): TPromise<DebugProtocol.ScopesResponse>;
 	variables(args: DebugProtocol.VariablesArguments): TPromise<DebugProtocol.VariablesResponse>;
 	evaluate(args: DebugProtocol.EvaluateArguments): TPromise<DebugProtocol.EvaluateResponse>;
+	modules(args: DebugProtocol.ModulesArguments): TPromise<DebugProtocol.ModulesResponse>;
 
 	custom(request: string, args: any): TPromise<DebugProtocol.Response>;
 

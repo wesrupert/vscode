@@ -498,6 +498,29 @@ declare module DebugProtocol {
 		};
 	}
 
+	/** Modules request; value of command field is "modules".
+	 	The request retrieves the modules specified by the given range.
+	 */
+	export interface ModulesRequest extends Request {
+		arguments: ModulesArguments;
+	}
+	/** Arguments for "modules" request. */
+	export interface ModulesArguments {
+		/** The start index to get modules from. */
+		start?: number;
+		/** The number of modules to retrieve. */
+		length?: number;
+	}
+	/** Response to "modules" request. */
+	export interface ModulesResponse extends Response {
+		body: {
+			/** The loaded modules. */
+			modules: Module[];
+			/** The total number of modules available. */
+			totalModules?: number;
+		}
+	}
+
 	//---- Types
 
 	/** Information about the capabilities of a debug adapter. */
@@ -636,5 +659,22 @@ declare module DebugProtocol {
 		line?: number;
 		/** The actual column of the breakpoint. */
 		column?: number;
+	}
+
+	/** Information about a loaded Module.
+	*/
+	export interface Module {
+		/** The name of the module. */
+		name: string;
+		/** The path to the module's origin. */
+		path: string;
+		/** An optional message about the state of the module's symbols. */
+		symbolStatus?: string;
+		/** An optional path to the loaded symbols for the module. */
+		symbolPath?: string;
+		/** An optional version number for the module. */
+		version?: string;
+		/** An optional timestamp of when the module was loaded. */
+		timeStamp?: string;
 	}
 }
