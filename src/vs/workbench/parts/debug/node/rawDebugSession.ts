@@ -304,6 +304,10 @@ export class RawDebugSession extends v8.V8Protocol implements debug.IRawDebugSes
 		return this.send('evaluate', args);
 	}
 
+	public modules(args: DebugProtocol.ModulesArguments): TPromise<DebugProtocol.ModulesResponse> {
+		return this.send('modules', args);
+	}
+
 	public getLengthInSeconds(): number {
 		return (new Date().getTime() - this.startTime) / 1000;
 	}

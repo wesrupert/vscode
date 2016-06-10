@@ -170,4 +170,8 @@ class MockRawSession implements debug.IRawDebugSession {
 	evaluate(args: DebugProtocol.EvaluateArguments): TPromise<DebugProtocol.EvaluateResponse> {
 		return TPromise.as(null);
 	}
+
+	public modules(args: DebugProtocol.ModulesArguments): TPromise<DebugProtocol.ModulesResponse> {
+		return TPromise.as(null);
+	}
 }
