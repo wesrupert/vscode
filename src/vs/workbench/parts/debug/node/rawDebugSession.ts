@@ -58,6 +58,7 @@ export class RawDebugSession extends v8.V8Protocol implements debug.IRawDebugSes
 	private _onDidTerminateDebugee: Emitter<SessionTerminatedEvent>;
 	private _onDidExitAdapter: Emitter<SessionExitedEvent>;
 	private _onDidThread: Emitter<DebugProtocol.ThreadEvent>;
+	private _onDidModule: Emitter<DebugProtocol.ModuleEvent>;
 	private _onDidOutput: Emitter<DebugProtocol.OutputEvent>;
 	private _onDidBreakpoint: Emitter<DebugProtocol.BreakpointEvent>;
 	private _onDidEvent: Emitter<DebugProtocol.Event>;
@@ -80,6 +81,7 @@ export class RawDebugSession extends v8.V8Protocol implements debug.IRawDebugSes
 		this._onDidTerminateDebugee = new Emitter<SessionTerminatedEvent>();
 		this._onDidExitAdapter = new Emitter<SessionExitedEvent>();
 		this._onDidThread = new Emitter<DebugProtocol.ThreadEvent>();
+		this._onDidModule = new Emitter<DebugProtocol.ModuleEvent>();
 		this._onDidOutput = new Emitter<DebugProtocol.OutputEvent>();
 		this._onDidBreakpoint = new Emitter<DebugProtocol.BreakpointEvent>();
 		this._onDidEvent = new Emitter<DebugProtocol.Event>();
@@ -103,6 +105,10 @@ export class RawDebugSession extends v8.V8Protocol implements debug.IRawDebugSes
 
 	public get onDidThread(): Event<DebugProtocol.ThreadEvent> {
 		return this._onDidThread.event;
+	}
+
+	public get onDidModule(): Event<DebugProtocol.ModuleEvent> {
+		return this._onDidModule.event;
 	}
 
 	public get onDidOutput(): Event<DebugProtocol.OutputEvent> {
@@ -184,6 +190,8 @@ export class RawDebugSession extends v8.V8Protocol implements debug.IRawDebugSes
 			this._onDidStop.fire(<DebugProtocol.StoppedEvent>event);
 		} else if (event.event === 'thread') {
 			this._onDidThread.fire(<DebugProtocol.ThreadEvent>event);
+		} else if (event.event === 'module') {
+			this._onDidModule.fire(<DebugProtocol.ModuleEvent>event);
 		} else if (event.event === 'output') {
 			this._onDidOutput.fire(<DebugProtocol.OutputEvent>event);
 		} else if (event.event === 'breakpoint') {

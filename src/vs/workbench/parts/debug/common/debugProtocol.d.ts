@@ -113,6 +113,28 @@ declare module DebugProtocol {
 		};
 	}
 
+	/** Event message for "module" event type.
+		The event indicates that a module has been loaded or unloaded.
+	 */
+	export interface ModuleEvent extends Event {
+		body: {
+			/** The reason for the event (such as: 'loaded', 'unloaded'). */
+			reason: string;
+			/** The name of the module. */
+			name: string;
+			/** The path to the module's origin. */
+			path: string;
+			/** An optional message about the state of the module's symbols. */
+			symbolStatus?: string;
+			/** An optional path to the loaded symbols for the module. */
+			symbolPath?: string;
+			/** An optional version number for the module. */
+			version?: string;
+			/** An optional timestamp of when the module was loaded. */
+			timeStamp?: string;
+		}
+	}
+
 	/** Event message for "output" event type.
 		The event indicates that the target has produced output.
 	*/
