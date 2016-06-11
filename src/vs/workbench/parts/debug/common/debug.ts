@@ -172,6 +172,7 @@ export interface IViewModel extends ITreeElement {
 
 export interface IModel extends ITreeElement {
 	getThreads(): { [threadId: number]: IThread; };
+	getModules(): { [name: string]: IModule; };
 	getBreakpoints(): IBreakpoint[];
 	areBreakpointsActivated(): boolean;
 	getFunctionBreakpoints(): IFunctionBreakpoint[];
@@ -183,6 +184,7 @@ export interface IModel extends ITreeElement {
 	onDidChangeCallStack: Event<void>;
 	onDidChangeWatchExpressions: Event<IExpression>;
 	onDidChangeReplElements: Event<void>;
+	onDidChangeModules: Event<void>;
 };
 
 // service enums

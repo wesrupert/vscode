@@ -24,6 +24,17 @@ const $ = dom.emmet;
 export class Modules extends Panel {
 	private toDispose: lifecycle.IDisposable[];
 	private scrollableElement: ScrollableElement;
+	
+	private nameColumn: HTMLElement;
+	private symbolStatusColumn: HTMLElement;
+	private symbolPathColumn: HTMLElement;
+	private versionColumn: HTMLElement;
+	private timeStampColumn: HTMLElement;
+	private modulePathColumn: HTMLElement;
+	
+	private cellElements : HTMLElement[];
+	
+	private modules: { [reference: string]: debug.IModule; };
 
 	constructor(
 		@debug.IDebugService private debugService: debug.IDebugService,
@@ -41,10 +52,10 @@ export class Modules extends Panel {
 	}
 
 	private registerListeners(): void {
-		
+		this.toDispose.push(this.debugService.getModel().onDidChangeModules(() => this.onModulesChange()));
 	}	
 	
-	public createColumn(container: HTMLElement, columnName: string, columnValue: string) {
+	public createColumn(container: HTMLElement, columnName: string) : HTMLElement {
 		
 		var colDiv = dom.append(container, $('.modulesColumn'));
 		container.appendChild(colDiv);
@@ -56,15 +67,21 @@ export class Modules extends Panel {
 		colHeader.appendChild(colHeaderText);
 		colDiv.appendChild(colHeader);
 		
-		var bodyTextElement = document.createTextNode(columnValue);
-		
-		var bodyElement = dom.append(container, $('.modulesCell'));
+		return colDiv;
+	}
+	
+	public appendElementToColumn(column: HTMLElement, value: string) {
+		var bodyTextElement = document.createTextNode(value);
+   		
+		var bodyElement = dom.append(column, $('.modulesCell'));
 		bodyElement.appendChild(bodyTextElement);
-		colDiv.appendChild(bodyElement);
+		column.appendChild(bodyElement);
 	}
 
 	public create(parent: builder.Builder): TPromise<void> {
 		super.create(parent);		
+		
+		this.cellElements = [];
 		const container = dom.append(parent.getHTMLElement(), $('.debugModules'));
 		
 		const innerContainer = dom.append(container, $('.debugModules'));
@@ -80,14 +97,55 @@ export class Modules extends Panel {
 		
 		this.toDispose.concat(this.scrollableElement);
 
-		this.createColumn(container, nls.localize('moduleName', "Name"), 'MyModule.dll');
-		this.createColumn(container, nls.localize('symbolStatus', "Symbol Status"), 'Symbols Not Loaded');
-		this.createColumn(container, nls.localize('symbolPath', "Symbol Path"), '');
-		this.createColumn(container, nls.localize('version', "Version"), '1.0.6');
-		this.createColumn(container, nls.localize('timestamp', "Timestamp"), '1/1/2016 3:30pm');
-		this.createColumn(container, nls.localize('modulePath', "Path"), '/MyModulemyProject/MyModule/MyModule.dll');	
-
+		this.nameColumn = this.createColumn(container, nls.localize('moduleName', "Name"));
+		this.symbolStatusColumn = this.createColumn(container, nls.localize('symbolStatus', "Symbol Status"));
+		this.symbolPathColumn = this.createColumn(container, nls.localize('symbolPath', "Symbol Path"));
+		this.versionColumn = this.createColumn(container, nls.localize('version', "Version"));
+		this.timeStampColumn = this.createColumn(container, nls.localize('timestamp', "Timestamp"));
+		this.modulePathColumn = this.createColumn(container, nls.localize('modulePath', "Path"));	
+		
+		this.modules = this.debugService.getModel().getModules();
+		
+		this.onModulesChange();
+	
 		return TPromise.as(null);
+	}
+	
+	private addTextNode(parent: HTMLElement, value: string) {
+		var nameTextNode = document.createTextNode(value);
+		var element = dom.append(parent, $('.modulesCell'));
+		element.appendChild(nameTextNode);
+		this.cellElements.push(element);
+	}
+	
+	public addModule(module: debug.IModule) {		
+		this.addTextNode(this.nameColumn, module.name);
+		this.addTextNode(this.symbolStatusColumn, module.symbolStatus);
+		this.addTextNode(this.symbolPathColumn, module.symbolPath);
+		this.addTextNode(this.versionColumn, module.version);
+		this.addTextNode(this.timeStampColumn, module.timeStamp);
+		this.addTextNode(this.modulePathColumn, module.path);
+	}
+	
+	public onModulesChange() : void {
+		
+		for (var e in this.cellElements)
+		{
+			var element: HTMLElement;
+			element = this.cellElements[e];
+			element.parentNode.removeChild(element);
+		}
+		this.cellElements = [];
+		
+		this.modules = this.debugService.getModel().getModules();
+		
+		// TODO: delete all existing modules.
+		
+		for (var modName in this.modules)
+		{
+			this.addModule(this.modules[modName]);
+		}		
+		
 	}
 	
 

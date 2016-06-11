@@ -399,23 +399,27 @@ export class Module implements debug.IModule {
 export class Model implements debug.IModel {
 
 	private threads: { [reference: number]: debug.IThread; };
+	private modules: { [reference: string]: debug.IModule; };
 	private toDispose: lifecycle.IDisposable[];
 	private replElements: debug.ITreeElement[];
 	private _onDidChangeBreakpoints: Emitter<void>;
 	private _onDidChangeCallStack: Emitter<void>;
 	private _onDidChangeWatchExpressions: Emitter<debug.IExpression>;
 	private _onDidChangeREPLElements: Emitter<void>;
+	private _onDidChangeModules: Emitter<void>;
 
 	constructor(private breakpoints: debug.IBreakpoint[], private breakpointsActivated: boolean, private functionBreakpoints: debug.IFunctionBreakpoint[],
 		private exceptionBreakpoints: debug.IExceptionBreakpoint[], private watchExpressions: Expression[]) {
 
 		this.threads = {};
+		this.modules = {};
 		this.replElements = [];
 		this.toDispose = [];
 		this._onDidChangeBreakpoints = new Emitter<void>();
 		this._onDidChangeCallStack = new Emitter<void>();
 		this._onDidChangeWatchExpressions = new Emitter<debug.IExpression>();
 		this._onDidChangeREPLElements = new Emitter<void>();
+		this._onDidChangeModules = new Emitter<void>();
 	}
 
 	public getId(): string {
@@ -437,9 +441,17 @@ export class Model implements debug.IModel {
 	public get onDidChangeReplElements(): Event<void> {
 		return this._onDidChangeREPLElements.event;
 	}
+	
+	public get onDidChangeModules(): Event<void> {
+		return this._onDidChangeModules.event;
+	}
 
 	public getThreads(): { [reference: number]: debug.IThread; } {
 		return this.threads;
+	}
+	
+	public getModules(): { [reference: string]: debug.IModule; } {
+		return this.modules;
 	}
 
 	public clearThreads(removeThreads: boolean, reference: number = undefined): void {
@@ -718,6 +730,22 @@ export class Model implements debug.IModel {
 		});
 
 		this._onDidChangeCallStack.fire();
+	}
+	
+	public addModule(data: debug.IModule) {
+		if (data.name && !this.threads[data.name])
+		{
+			this.modules[data.name] = new Module(data.name, data.path, data.symbolStatus,  data.symbolPath, data.version, data.timeStamp);
+			this._onDidChangeModules.fire();
+		}
+	}
+	
+	public removeModule(data: debug.IModule) {
+		if (data.name && this.threads[data.name])
+		{
+			this.threads[data.name] = null;
+			this._onDidChangeModules.fire();
+		}
 	}
 
 	public rawUpdate(data: debug.IRawModelUpdate): void {

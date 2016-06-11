@@ -301,6 +301,16 @@ export class DebugService implements debug.IDebugService {
 				this.onOutput(event);
 			}
 		}));
+		
+		this.toDisposeOnSessionEnd.push(this.session.onDidModule(event => {
+				if (event.body.reason === 'loaded') {
+					this.model.addModule(new model.Module(event.body.name, event.body.path, event.body.symbolStatus, event.body.symbolPath, event.body.version, event.body.timeStamp));
+				}
+				else if (event.body.reason === 'unloaded') {
+					this.model.removeModule(new model.Module(event.body.name, event.body.path, event.body.symbolStatus, event.body.symbolPath, event.body.version, event.body.timeStamp));
+				}
+		}));
+
 
 		this.toDisposeOnSessionEnd.push(this.session.onDidBreakpoint(event => {
 			const id = event.body && event.body.breakpoint ? event.body.breakpoint.id : undefined;
