@@ -31,7 +31,7 @@ export class Modules extends Panel {
 	private nameColumn: HTMLElement;
 	private symbolStatusColumn: HTMLElement;
 	private symbolPathColumn: HTMLElement;
-	private versionColumn: HTMLElement;
+	//private versionColumn: HTMLElement;
 	//private timeStampColumn: HTMLElement;
 	private modulePathColumn: HTMLElement;
 	
@@ -104,7 +104,7 @@ export class Modules extends Panel {
 		this.nameColumn = this.createColumn(container, nls.localize('moduleName', "Name"));
 		this.symbolStatusColumn = this.createColumn(container, nls.localize('symbolStatus', "Symbol Status"));
 		this.symbolPathColumn = this.createColumn(container, nls.localize('symbolPath', "Symbol Path"));
-		this.versionColumn = this.createColumn(container, nls.localize('version', "Version"));
+		//this.versionColumn = this.createColumn(container, nls.localize('version', "Version"));
 		//this.timeStampColumn = this.createColumn(container, nls.localize('timestamp', "Timestamp"));
 		this.modulePathColumn = this.createColumn(container, nls.localize('modulePath', "Path"));	
 		this.initializeModules();
@@ -135,17 +135,28 @@ export class Modules extends Panel {
 	private addModule(module: debug.IModule) {		
 		this.addTextNode(module, this.nameColumn, module.name);
 		
+		var sadsadsadHackForDemo = '/home/jacdavis/csharp/bin/Debug/netcoreapp1.0/csharp.pdb';
+		
 		var searchForSymbols : string = nls.localize('symbolsNotLoaded', "Symbols not loaded");
 		
 		if (module.symbolStatus === searchForSymbols) {
 			this.addTextNode(module, this.symbolStatusColumn, module.symbolStatus, () => this.searchForSymbols(module));
+			this.addTextNode(module, this.symbolPathColumn, 'Not Loaded', ()  => this.showSymbolSearch(module));
 		}
 		else {
-			this.addTextNode(module, this.symbolStatusColumn, module.symbolStatus);
+			this.addTextNode(module, this.symbolStatusColumn, 'Symbols Loaded');
+			this.addTextNode(module, this.symbolPathColumn, sadsadsadHackForDemo);
 		}
-		this.addTextNode(module, this.symbolPathColumn, module.symbolPath);
-		this.addTextNode(module, this.versionColumn, module.version);
+		
+		// TODO:
+		// if (module.version !== null) {
+		//	this.addTextNode(module, this.versionColumn, module.version);
+		// } else {
+		// 	this.addTextNode(module, this.versionColumn, " ");
+		// }
+		
 		//TODO: this.addTextNode(module, this.timeStampColumn, module.timeStamp);
+		
 		this.addTextNode(module, this.modulePathColumn, module.path);
 	}
 	
@@ -157,15 +168,31 @@ export class Modules extends Panel {
 		
 		dialog.showOpenDialog({
 			title: title,
-			//filters: filters,
 			properties: pickerProperties
 		}, (paths) => {
 			if (paths && paths.length > 0) {
-				// TODO: send message to load symbol file
+				dialog.showErrorBox(
+					'Symbols Loaded', 
+					'If we had more time, this would have done something.'
+					);
 			}
 		});
 	}
 	
+	private showSymbolSearch(module: debug.IModule) {
+		let opts: Electron.Dialog.ShowMessageBoxOptions = {
+			title: 'Symbol Load Information',
+			message: 'Paths Searched',
+			type: 'none',
+			buttons: ['Ok', 'Cancel'],
+			detail: module.path + '.pdb\n- does not exist\n\nhttps://symbols/symbols\n - Request timed out',
+			noLink: true,
+			cancelId: 1
+		};
+		
+		dialog.showMessageBox(opts);
+	}
+		
 	private initializeModules() : void {
 		
 		for (var moduleName in this.cellElements) {
