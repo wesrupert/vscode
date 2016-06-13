@@ -18,6 +18,9 @@ import { IInstantiationService } from 'vs/platform/instantiation/common/instanti
 import { IWorkspaceContextService } from 'vs/workbench/services/workspace/common/contextService';
 import { ScrollableElement } from 'vs/base/browser/ui/scrollbar/scrollableElement';
 import { ScrollbarVisibility } from 'vs/base/browser/ui/scrollbar/scrollableElementOptions';
+import { remote } from 'electron';
+
+const dialog = remote.dialog;
 
 const $ = dom.emmet;
 
@@ -29,7 +32,7 @@ export class Modules extends Panel {
 	private symbolStatusColumn: HTMLElement;
 	private symbolPathColumn: HTMLElement;
 	private versionColumn: HTMLElement;
-	private timeStampColumn: HTMLElement;
+	//private timeStampColumn: HTMLElement;
 	private modulePathColumn: HTMLElement;
 	
 	private cellElements: { [reference: string]: HTMLElement[]; }; ;
@@ -102,17 +105,22 @@ export class Modules extends Panel {
 		this.symbolStatusColumn = this.createColumn(container, nls.localize('symbolStatus', "Symbol Status"));
 		this.symbolPathColumn = this.createColumn(container, nls.localize('symbolPath', "Symbol Path"));
 		this.versionColumn = this.createColumn(container, nls.localize('version', "Version"));
-		this.timeStampColumn = this.createColumn(container, nls.localize('timestamp', "Timestamp"));
+		//this.timeStampColumn = this.createColumn(container, nls.localize('timestamp', "Timestamp"));
 		this.modulePathColumn = this.createColumn(container, nls.localize('modulePath', "Path"));	
 		this.initializeModules();
 	
 		return TPromise.as(null);
 	}
 	
-	private addTextNode(module: debug.IModule, parent: HTMLElement, value: string) {
+	private addTextNode(module: debug.IModule, parent: HTMLElement, value: string, clickHandler = null) {
 		var nameTextNode = document.createTextNode(value);
 		var element = dom.append(parent, $('.modulesCell'));
 		element.appendChild(nameTextNode);
+		
+		if (clickHandler !== null) {
+			element.addEventListener('click', clickHandler);
+			element.className = 'modulesCellClickable';
+		}
 	
 		if (this.cellElements[module.name] === undefined)
 		{	
@@ -122,17 +130,43 @@ export class Modules extends Panel {
 			this.cellElements[module.name].push(element);
 		}		
 	}
+
 	
-	public addModule(module: debug.IModule) {		
+	private addModule(module: debug.IModule) {		
 		this.addTextNode(module, this.nameColumn, module.name);
-		this.addTextNode(module, this.symbolStatusColumn, module.symbolStatus);
+		
+		var searchForSymbols : string = nls.localize('symbolsNotLoaded', "Symbols not loaded");
+		
+		if (module.symbolStatus === searchForSymbols) {
+			this.addTextNode(module, this.symbolStatusColumn, module.symbolStatus, () => this.searchForSymbols(module));
+		}
+		else {
+			this.addTextNode(module, this.symbolStatusColumn, module.symbolStatus);
+		}
 		this.addTextNode(module, this.symbolPathColumn, module.symbolPath);
 		this.addTextNode(module, this.versionColumn, module.version);
-		this.addTextNode(module, this.timeStampColumn, module.timeStamp);
+		//TODO: this.addTextNode(module, this.timeStampColumn, module.timeStamp);
 		this.addTextNode(module, this.modulePathColumn, module.path);
 	}
 	
-	public initializeModules() : void {
+	private searchForSymbols(module: debug.IModule) {
+		var title: string = nls.localize('findSymbols', "Find Symbols");
+		//var filters = [{name:'pdb', extensions:['.pdb']}, {name:'so', extensions:['.so']}, {name:'any', extensions:['*']}];
+		let pickerProperties: string[];
+		pickerProperties = ['openFile'];
+		
+		dialog.showOpenDialog({
+			title: title,
+			//filters: filters,
+			properties: pickerProperties
+		}, (paths) => {
+			if (paths && paths.length > 0) {
+				// TODO: send message to load symbol file
+			}
+		});
+	}
+	
+	private initializeModules() : void {
 		
 		for (var moduleName in this.cellElements) {
 			var elements: HTMLElement[];
@@ -152,13 +186,13 @@ export class Modules extends Panel {
 		}			
 	}
 	
-	public onModuleAdded(module: debug.IModule) : void { 
+	private onModuleAdded(module: debug.IModule) : void { 
 		this.cellElements[module.name] = [];
 		this.modules[module.name] = module;
 		this.addModule(module);
 	}	
 	
-	public onModuleRemoved(module: debug.IModule) : void {
+	private onModuleRemoved(module: debug.IModule) : void {
 		var elements: HTMLElement[] = this.cellElements[module.name];
 		for (var e in elements) {
 			var element: HTMLElement;

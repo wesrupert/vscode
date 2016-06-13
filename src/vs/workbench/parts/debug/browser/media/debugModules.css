@@ -27,4 +27,9 @@
 	padding-left: 5px;
 }
 
+.monaco-workbench .debugModules .modulesCellClickable {
+	padding-left: 5px;
+	color: deepskyblue;
+	text-decoration: underline;
+}
 
