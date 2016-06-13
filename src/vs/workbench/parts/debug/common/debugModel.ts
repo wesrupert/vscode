@@ -406,7 +406,8 @@ export class Model implements debug.IModel {
 	private _onDidChangeCallStack: Emitter<void>;
 	private _onDidChangeWatchExpressions: Emitter<debug.IExpression>;
 	private _onDidChangeREPLElements: Emitter<void>;
-	private _onDidChangeModules: Emitter<void>;
+	private _onModuleAdded: Emitter<debug.IModule>;
+	private _onModuleRemoved: Emitter<debug.IModule>;
 
 	constructor(private breakpoints: debug.IBreakpoint[], private breakpointsActivated: boolean, private functionBreakpoints: debug.IFunctionBreakpoint[],
 		private exceptionBreakpoints: debug.IExceptionBreakpoint[], private watchExpressions: Expression[]) {
@@ -419,7 +420,8 @@ export class Model implements debug.IModel {
 		this._onDidChangeCallStack = new Emitter<void>();
 		this._onDidChangeWatchExpressions = new Emitter<debug.IExpression>();
 		this._onDidChangeREPLElements = new Emitter<void>();
-		this._onDidChangeModules = new Emitter<void>();
+		this._onModuleAdded = new Emitter<debug.IModule>();
+		this._onModuleRemoved = new Emitter<debug.IModule>();
 	}
 
 	public getId(): string {
@@ -442,8 +444,12 @@ export class Model implements debug.IModel {
 		return this._onDidChangeREPLElements.event;
 	}
 	
-	public get onDidChangeModules(): Event<void> {
-		return this._onDidChangeModules.event;
+	public get onModuleRemoved(): Event<debug.IModule> {
+		return this._onModuleRemoved.event;
+	}
+	
+	public get onModuleAdded(): Event<debug.IModule> {
+		return this._onModuleAdded.event;
 	}
 
 	public getThreads(): { [reference: number]: debug.IThread; } {
@@ -735,16 +741,18 @@ export class Model implements debug.IModel {
 	public addModule(data: debug.IModule) {
 		if (data.name && !this.threads[data.name])
 		{
-			this.modules[data.name] = new Module(data.name, data.path, data.symbolStatus,  data.symbolPath, data.version, data.timeStamp);
-			this._onDidChangeModules.fire();
+			var mod : debug.IModule = new Module(data.name, data.path, data.symbolStatus,  data.symbolPath, data.version, data.timeStamp);
+			this.modules[data.name] = mod;
+			this._onModuleAdded.fire(mod);
 		}
 	}
 	
 	public removeModule(data: debug.IModule) {
 		if (data.name && this.threads[data.name])
 		{
-			this.threads[data.name] = null;
-			this._onDidChangeModules.fire();
+			var mod : debug.IModule = this.modules[data.name]; 
+			this.modules[data.name] = null;
+			this._onModuleRemoved.fire(mod);
 		}
 	}
 

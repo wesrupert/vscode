@@ -184,7 +184,8 @@ export interface IModel extends ITreeElement {
 	onDidChangeCallStack: Event<void>;
 	onDidChangeWatchExpressions: Event<IExpression>;
 	onDidChangeReplElements: Event<void>;
-	onDidChangeModules: Event<void>;
+	onModuleAdded: Event<IModule>;
+	onModuleRemoved: Event<IModule>;
 };
 
 // service enums

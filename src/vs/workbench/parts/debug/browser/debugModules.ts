@@ -32,7 +32,7 @@ export class Modules extends Panel {
 	private timeStampColumn: HTMLElement;
 	private modulePathColumn: HTMLElement;
 	
-	private cellElements : HTMLElement[];
+	private cellElements: { [reference: string]: HTMLElement[]; }; ;
 	
 	private modules: { [reference: string]: debug.IModule; };
 
@@ -52,7 +52,8 @@ export class Modules extends Panel {
 	}
 
 	private registerListeners(): void {
-		this.toDispose.push(this.debugService.getModel().onDidChangeModules(() => this.onModulesChange()));
+		this.toDispose.push(this.debugService.getModel().onModuleAdded((m: debug.IModule) => this.onModuleAdded(m)));
+		this.toDispose.push(this.debugService.getModel().onModuleRemoved((m: debug.IModule) => this.onModuleRemoved(m)));
 	}	
 	
 	public createColumn(container: HTMLElement, columnName: string) : HTMLElement {
@@ -81,7 +82,7 @@ export class Modules extends Panel {
 	public create(parent: builder.Builder): TPromise<void> {
 		super.create(parent);		
 		
-		this.cellElements = [];
+		this.cellElements = {};
 		const container = dom.append(parent.getHTMLElement(), $('.debugModules'));
 		
 		const innerContainer = dom.append(container, $('.debugModules'));
@@ -103,51 +104,67 @@ export class Modules extends Panel {
 		this.versionColumn = this.createColumn(container, nls.localize('version', "Version"));
 		this.timeStampColumn = this.createColumn(container, nls.localize('timestamp', "Timestamp"));
 		this.modulePathColumn = this.createColumn(container, nls.localize('modulePath', "Path"));	
-		
-		this.modules = this.debugService.getModel().getModules();
-		
-		this.onModulesChange();
+		this.initializeModules();
 	
 		return TPromise.as(null);
 	}
 	
-	private addTextNode(parent: HTMLElement, value: string) {
+	private addTextNode(module: debug.IModule, parent: HTMLElement, value: string) {
 		var nameTextNode = document.createTextNode(value);
 		var element = dom.append(parent, $('.modulesCell'));
 		element.appendChild(nameTextNode);
-		this.cellElements.push(element);
+	
+		if (this.cellElements[module.name] === null)
+		{	
+			this.cellElements[module.name] = [element];
+		}
+		else {
+			this.cellElements[module.name].push(element);
+		}		
 	}
 	
 	public addModule(module: debug.IModule) {		
-		this.addTextNode(this.nameColumn, module.name);
-		this.addTextNode(this.symbolStatusColumn, module.symbolStatus);
-		this.addTextNode(this.symbolPathColumn, module.symbolPath);
-		this.addTextNode(this.versionColumn, module.version);
-		this.addTextNode(this.timeStampColumn, module.timeStamp);
-		this.addTextNode(this.modulePathColumn, module.path);
+		this.addTextNode(module, this.nameColumn, module.name);
+		this.addTextNode(module, this.symbolStatusColumn, module.symbolStatus);
+		this.addTextNode(module, this.symbolPathColumn, module.symbolPath);
+		this.addTextNode(module, this.versionColumn, module.version);
+		this.addTextNode(module, this.timeStampColumn, module.timeStamp);
+		this.addTextNode(module, this.modulePathColumn, module.path);
 	}
 	
-	public onModulesChange() : void {
+	public initializeModules() : void {
 		
-		for (var e in this.cellElements)
-		{
-			var element: HTMLElement;
-			element = this.cellElements[e];
-			element.parentNode.removeChild(element);
+		for (var moduleName in this.cellElements) {
+			var elements: HTMLElement[];
+			elements = this.cellElements[moduleName];
+			
+			for (var e in elements) {
+				var element: HTMLElement;
+				element = elements[e];
+				element.parentNode.removeChild(element);
+			}
 		}
-		this.cellElements = [];
-		
+		this.cellElements = {};
 		this.modules = this.debugService.getModel().getModules();
 		
-		// TODO: delete all existing modules.
-		
-		for (var modName in this.modules)
-		{
+		for (var modName in this.modules) {
 			this.addModule(this.modules[modName]);
-		}		
-		
+		}			
 	}
 	
+	public onModuleAdded(module: debug.IModule) : void { 
+		this.cellElements[module.name] = [];
+		this.addModule(this.modules[module.name]);
+	}	
+	
+	public onModuleRemoved(module: debug.IModule) : void {
+		var elements: HTMLElement[] = this.cellElements[module.name];
+		for (var e in elements) {
+			var element: HTMLElement;
+			element = elements[e];
+			element.parentNode.removeChild(element);
+		}
+	}	
 
 	public layout(dimension: builder.Dimension): void {
 		
@@ -160,21 +177,6 @@ export class Modules extends Panel {
 	public reveal(element: debug.ITreeElement): TPromise<void> {
 		return TPromise.as(null);
 	}
-
-	/*public getActions(): actions.IAction[] {
-		if (!this.actions) {
-			this.actions = [
-				this.instantiationService.createInstance(debugactions.ClearReplAction, debugactions.ClearReplAction.ID, debugactions.ClearReplAction.LABEL)
-			];
-
-			this.actions.forEach(a => {
-				this.toDispose.push(a);
-			});
-		}
-
-		return this.actions;
-	}*/
-
 	public shutdown(): void {
 		
 	}
