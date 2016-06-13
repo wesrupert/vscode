@@ -486,6 +486,13 @@ export class Model implements debug.IModel {
 
 		this._onDidChangeCallStack.fire();
 	}
+	
+	public clearModules() : void {
+		for (var e in this.modules) {
+			this.removeModule(this.modules[e]);
+		}
+		this.modules = {};
+	}
 
 	public getBreakpoints(): debug.IBreakpoint[] {
 		return this.breakpoints;
@@ -748,7 +755,7 @@ export class Model implements debug.IModel {
 	}
 	
 	public removeModule(data: debug.IModule) {
-		if (data.name && this.threads[data.name])
+		if (data.name && this.modules[data.name])
 		{
 			var mod : debug.IModule = this.modules[data.name]; 
 			this.modules[data.name] = null;

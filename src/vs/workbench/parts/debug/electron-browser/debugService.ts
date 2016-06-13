@@ -762,6 +762,7 @@ export class DebugService implements debug.IDebugService {
 		this.partService.removeClass('debugging');
 
 		this.model.clearThreads(true);
+		this.model.clearModules();
 		this.setFocusedStackFrameAndEvaluate(null).done(null, errors.onUnexpectedError);
 		this.setStateAndEmit(debug.State.Inactive);
 

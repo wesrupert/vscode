@@ -114,7 +114,7 @@ export class Modules extends Panel {
 		var element = dom.append(parent, $('.modulesCell'));
 		element.appendChild(nameTextNode);
 	
-		if (this.cellElements[module.name] === null)
+		if (this.cellElements[module.name] === undefined)
 		{	
 			this.cellElements[module.name] = [element];
 		}
@@ -154,7 +154,8 @@ export class Modules extends Panel {
 	
 	public onModuleAdded(module: debug.IModule) : void { 
 		this.cellElements[module.name] = [];
-		this.addModule(this.modules[module.name]);
+		this.modules[module.name] = module;
+		this.addModule(module);
 	}	
 	
 	public onModuleRemoved(module: debug.IModule) : void {
